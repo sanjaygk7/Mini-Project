@@ -1,0 +1,33 @@
+/* Home.css */
+.home {
+    text-align: center;
+    padding: 50px 20px;
+    background: linear-gradient(to bottom, #4a90e2, #357abd);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    color: white;
+  }
+  
+  .home h1 {
+    font-size: 3em;
+    margin-bottom: 20px;
+  }
+  
+  .home p {
+    font-size: 1.2em;
+    max-width: 600px;
+    margin: 0 auto 30px;
+  }
+  
+  .home .get-started-btn {
+    background-color: white;
+    color: #4a90e2;
+    font-size: 1.1em;
+    padding: 15px 30px;
+  }
+  
+  .home .get-started-btn:hover {
+    background-color: #f0f0f0;
+  }
