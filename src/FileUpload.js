@@ -2,26 +2,24 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './FileUpload.css';
 
-const FileUpload = () => {
-  const [file, setFile] = useState(null); // State to store the selected file
-  const [uploading, setUploading] = useState(false); // State to track upload status
-  const [errorMessage, setErrorMessage] = useState(''); // State to handle errors
+const FileUpload = ({ setVideoUrl }) => {
+  const [file, setFile] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
   const navigate = useNavigate();
 
-  // Handle file selection
   const handleFileChange = (event) => {
     setFile(event.target.files[0]);
-    setErrorMessage(''); // Clear any previous error when a new file is selected
+    setErrorMessage('');
   };
 
-  // Handle the file upload process
   const handleUpload = async () => {
     if (!file) {
       setErrorMessage('Please select a file to upload.');
       return;
     }
 
-    setUploading(true); // Start the uploading state
+    setUploading(true);
     const formData = new FormData();
     formData.append('video', file);
 
@@ -33,8 +31,9 @@ const FileUpload = () => {
 
       if (response.ok) {
         const result = await response.json();
-        const videoUrl = result.videoUrl; // Get the video URL from the response
-        navigate('/summary', { state: { videoUrl } }); // Navigate to summary page with video URL
+        const videoUrl = result.videoUrl;
+        setVideoUrl(videoUrl); // Set video URL in parent component
+        navigate('/summary');
       } else {
         throw new Error('Upload failed. Please try again.');
       }
@@ -42,7 +41,7 @@ const FileUpload = () => {
       console.error('Error uploading file:', error);
       setErrorMessage('Error uploading file. Please try again.');
     } finally {
-      setUploading(false); // Stop the uploading state
+      setUploading(false);
     }
   };
 
@@ -63,7 +62,6 @@ const FileUpload = () => {
         {uploading ? 'Uploading...' : 'Upload'}
       </button>
 
-      {/* Error Message Display */}
       {errorMessage && (
         <div className="mt-4 text-red-500 font-semibold">
           {errorMessage}

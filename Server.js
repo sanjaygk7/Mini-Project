@@ -5,6 +5,7 @@ const path = require('path');
 const cors = require('cors');
 const fs = require('fs');
 
+// Initialize Express app
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -12,8 +13,11 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
-// Replace with your OpenAI API key
-const OPENAI_API_KEY = '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';
+// Hugging Face API Key
+const HUGGINGFACE_API_KEY = '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';
+
+// OpenAI API Key
+const OPENAI_API_KEY = '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'; // Replace with your actual OpenAI API key
 
 // File Upload Setup (Multer)
 const storage = multer.diskStorage({
@@ -42,26 +46,27 @@ app.post('/api/upload', upload.single('video'), (req, res) => {
 
 // Summarization Endpoint
 app.post('/api/summarize', async (req, res) => {
-  const { videoUrl } = req.body;
+  const { videoUrl, transcript } = req.body; // Expecting a transcript to be passed
+
+  if (!transcript) {
+    return res.status(400).json({ error: 'No transcript provided for summarization.' });
+  }
 
   try {
-    // Call OpenAI API for summarization
+    // Call Hugging Face API for summarization
     const response = await axios.post(
-      'https://api.openai.com/v1/completions',
+      'https://api-inference.huggingface.co/models/facebook/bart-large-cnn',
       {
-        model: 'text-davinci-003',
-        prompt: `Summarize the lecture in this video: ${videoUrl}`,
-        max_tokens: 150,
+        inputs: transcript, // Send the transcript directly
       },
       {
         headers: {
-          Authorization: `Bearer ${OPENAI_API_KEY}`,
-          'Content-Type': 'application/json',
+          Authorization: `Bearer ${HUGGINGFACE_API_KEY}`,
         },
       }
     );
 
-    const summary = response.data.choices[0].text.trim();
+    const summary = response.data[0].summary_text;
     res.json({ summary });
   } catch (error) {
     console.error('Error generating summary:', error);
@@ -69,56 +74,54 @@ app.post('/api/summarize', async (req, res) => {
   }
 });
 
-// Translation Endpoint
-app.post('/api/translate', async (req, res) => {
-  const { text, targetLanguage } = req.body;
-
-  try {
-    const response = await axios.post(
-      'https://api.openai.com/v1/completions',
-      {
-        model: 'text-davinci-003',
-        prompt: `Translate this text to ${targetLanguage}: ${text}`,
-        max_tokens: 150,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${OPENAI_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-      }
-    );
-
-    const translatedText = response.data.choices[0].text.trim();
-    res.json({ translatedText });
-  } catch (error) {
-    console.error('Error translating text:', error);
-    res.status(500).json({ error: 'Translation failed' });
-  }
-});
 
 // Chatbot Endpoint
 app.post('/api/chat', async (req, res) => {
   const { message } = req.body;
 
   try {
-    // Call OpenAI API to generate a response
-    const response = await axios.post(
-      'https://api.openai.com/v1/completions',
-      {
-        model: 'text-davinci-003',
-        prompt: `Answer the following question based on this lecture summary: ${message}`,
-        max_tokens: 150,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${OPENAI_API_KEY}`,
-          'Content-Type': 'application/json',
+    // Retry logic for OpenAI API
+    const getChatbotResponse = async () => {
+      const response = await axios.post(
+        'https://api.openai.com/v1/chat/completions',
+        {
+          model: 'gpt-3.5-turbo', // Use your preferred model
+          messages: [{ role: 'user', content: message }],
         },
-      }
-    );
+        {
+          headers: {
+            'Authorization': `Bearer ${OPENAI_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
 
-    const reply = response.data.choices[0].text.trim();
+      return response.data.choices[0].message.content;
+    };
+
+    const maxRetries = 5; // Set the maximum number of retries
+    let attempts = 0;
+    let reply;
+
+    while (attempts < maxRetries) {
+      try {
+        reply = await getChatbotResponse();
+        break; // Exit loop if successful
+      } catch (error) {
+        if (error.response && error.response.status === 503) {
+          attempts++;
+          console.log(`Attempt ${attempts} failed. Retrying...`);
+          await new Promise(res => setTimeout(res, 2000)); // Wait 2 seconds before retrying
+        } else {
+          throw error; // Re-throw other errors
+        }
+      }
+    }
+
+    if (!reply) {
+      return res.status(503).json({ error: 'Chatbot is currently unavailable. Please try again later.' });
+    }
+
     res.json({ reply });
   } catch (error) {
     console.error('Error in chatbot:', error);
