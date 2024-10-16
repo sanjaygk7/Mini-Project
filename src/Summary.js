@@ -11,14 +11,21 @@ const Summary = () => {
 
   useEffect(() => {
     const fetchSummary = async () => {
-      const summaryId = location.state?.summaryId;
-      if (!summaryId) {
+      const videoUrl = location.state?.videoUrl;
+      if (!videoUrl) {
         navigate('/upload');
         return;
       }
 
       try {
-        const response = await fetch(`/api/summary/${summaryId}`);
+        const response = await fetch('http://localhost:5000/api/summarize', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ videoUrl }),
+        });
+
         if (response.ok) {
           const data = await response.json();
           setSummary(data.summary);
@@ -36,7 +43,7 @@ const Summary = () => {
 
   const handleTranslate = async () => {
     try {
-      const response = await fetch('/api/translate', {
+      const response = await fetch('http://localhost:5000/api/translate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -96,7 +103,7 @@ const Summary = () => {
         </div>
       )}
       <button 
-        onClick={() => navigate('/chat', { state: { summaryId: location.state?.summaryId } })}
+        onClick={() => navigate('/chat', { state: { summaryId: location.state?.videoUrl } })}
         className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
       >
         Ask Questions

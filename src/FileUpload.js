@@ -19,14 +19,15 @@ const FileUpload = () => {
     formData.append('video', file);
 
     try {
-      const response = await fetch('/api/upload', {
+      const response = await fetch('http://localhost:5000/api/upload', {
         method: 'POST',
         body: formData,
       });
 
       if (response.ok) {
         const result = await response.json();
-        navigate('/summary', { state: { summaryId: result.summaryId } });
+        const videoUrl = result.videoUrl; // Get the video URL
+        navigate('/summary', { state: { videoUrl } });
       } else {
         throw new Error('Upload failed');
       }
