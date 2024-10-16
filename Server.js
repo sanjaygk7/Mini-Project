@@ -3,19 +3,24 @@ const multer = require('multer');
 const axios = require('axios');
 const path = require('path');
 const cors = require('cors');
+const fs = require('fs');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Middleware
 app.use(cors());
 app.use(express.json());
 
 // Replace with your OpenAI API key
 const OPENAI_API_KEY = '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';
 
-// File Upload Setup
+// File Upload Setup (Multer)
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
+    if (!fs.existsSync('uploads')) {
+      fs.mkdirSync('uploads'); // Create uploads directory if it doesn't exist
+    }
     cb(null, 'uploads/');
   },
   filename: (req, file, cb) => {
@@ -25,14 +30,14 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
-// Handle File Upload
+// File Upload Endpoint
 app.post('/api/upload', upload.single('video'), (req, res) => {
   if (!req.file) {
     return res.status(400).json({ error: 'No file uploaded' });
   }
 
-  const videoUrl = `/uploads/${req.file.filename}`; // In a real app, use actual video processing
-  return res.json({ videoUrl });
+  const videoUrl = `/uploads/${req.file.filename}`;
+  res.json({ videoUrl });
 });
 
 // Summarization Endpoint
@@ -40,7 +45,7 @@ app.post('/api/summarize', async (req, res) => {
   const { videoUrl } = req.body;
 
   try {
-    // Call OpenAI API for summarization (replace video with actual transcript if available)
+    // Call OpenAI API for summarization
     const response = await axios.post(
       'https://api.openai.com/v1/completions',
       {
@@ -94,7 +99,7 @@ app.post('/api/translate', async (req, res) => {
 
 // Chatbot Endpoint
 app.post('/api/chat', async (req, res) => {
-  const { message, summaryId } = req.body;
+  const { message } = req.body;
 
   try {
     // Call OpenAI API to generate a response
@@ -122,7 +127,7 @@ app.post('/api/chat', async (req, res) => {
 });
 
 // Static files for uploads
-app.use('/uploads', express.static('uploads'));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Start Server
 app.listen(PORT, () => {
