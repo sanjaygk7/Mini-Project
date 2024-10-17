@@ -2,11 +2,11 @@
 .home {
   text-align: center;
 }
-
+@import url('https://fonts.googleapis.com/css2?family=Poppins&display=swap');
 .container {
   display: flex;
   justify-content: space-between;
-  width: 96vw;
+  width: 95vw;
   padding-right: 10px;
   background-image: url(D:\Projects\StudyEase\Final\public\images\1_g-WrYg2JDifHJ1esUJO3IA.jpg);
   padding: 20px;
@@ -43,7 +43,7 @@
 }
 
 .login a:hover {
-  background-color: #f0f0f0;
+  background-color: #c1eded;
 }
 
 .content-section {
@@ -96,8 +96,10 @@
 }
 
 .contacts .left {
-  flex: 1;
+  /* flex: 1; */
   padding: 20px;
+  width: 35vw;
+  
 }
 
 .contacts .right {
@@ -129,7 +131,7 @@
   color: #666;
   line-height: 1.6;
   text-align: center;
-  margin-bottom: 10px;
+  margin-bottom: 20px;
 }
 
 .contacts .items {
@@ -163,7 +165,7 @@
 
 .contacts form {
   width: 100%;
-  max-width: 400px;
+  width: 400px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
@@ -231,4 +233,53 @@
   .contacts form {
     max-width: 100%;
   }
+  .video-section {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100vh;
+    overflow: hidden;
+  }
+  
+  /* Style the video itself */
+  .background-video {
+    display: block;
+    width: 100%;
+    max-width: 1200px;
+    height: auto;
+    margin: 0 auto;
+  }
+
+}
+.video-section {
+  padding-top: 10px;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: auto;
+  overflow: hidden;
+}
+
+/* Style the video itself */
+.background-video {
+  display: block;
+  width: 100%;
+  width: 55vw;
+  height: auto;
+  margin: 0 auto;
+  border-radius: 20px;
+}
+.intro{
+
+  padding-top: 10px;
+  font-family: "Poppins", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+  font-size: 24px;
+  text-align: center;
+  
 }

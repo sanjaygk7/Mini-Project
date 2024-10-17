@@ -36,6 +36,24 @@ const Home = () => {
               Login
             </Link>
           </div>
+         
+        </div>
+        <div className="intro">
+        <p>Welcome to LectureEase, where learning is personalized and interactive. Translate lectures into your preferred language and get instant answers to your questions with our intelligent chatbot, available 24/7. LectureEase makes education easier, accessible, and more effective.</p>
+        </div>
+        {/* Video Section */}
+        <div className="video-section">
+          
+          <video 
+            autoPlay 
+            muted 
+            loop 
+            className="background-video"
+          >
+            <source src="/videos/3254066-hd_1920_1080_25fps.mp4" type="video/mp4" />
+            Your browser does not support the video tag.
+          </video>
+          
         </div>
 
         {/* Second Section: Paragraph and Get Started Button */}
