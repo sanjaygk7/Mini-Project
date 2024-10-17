@@ -3,7 +3,8 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import Home from './Home';
 import FileUpload from './FileUpload';
 import Summary from './Summary';
-import Chatbot from './Chatbot';
+// import Chatbot from './Chatbot';
+
 import './index.css';
 
 const App = () => {
@@ -19,9 +20,10 @@ const App = () => {
             <Route path="/summary" element={<Summary videoUrl={videoUrl} />} />
           </Routes>
         </div>
-        <div className="w-1/3 p-4 border-l">
+        {/* <div className="w-1/3 p-4 border-l">
           <Chatbot />
-        </div>
+        </div> */}
+        
       </div>
     </Router>
   );
