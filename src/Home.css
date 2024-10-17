@@ -3,10 +3,10 @@
   text-align: center;
 }
 @import url('https://fonts.googleapis.com/css2?family=Poppins&display=swap');
+
 .container {
   display: flex;
   justify-content: space-between;
-  width: 95vw;
   padding-right: 10px;
   background-image: url(D:\Projects\StudyEase\Final\public\images\1_g-WrYg2JDifHJ1esUJO3IA.jpg);
   padding: 20px;

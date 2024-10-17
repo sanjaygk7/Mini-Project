@@ -39,7 +39,9 @@ const Home = () => {
          
         </div>
         <div className="intro">
-        <p>Welcome to LectureEase, where learning is personalized and interactive. Translate lectures into your preferred language and get instant answers to your questions with our intelligent chatbot, available 24/7. LectureEase makes education easier, accessible, and more effective.</p>
+        <p>How would it feel to have a 24/7 learning partner that can instantly answer your lecture questions?<br></br>
+Ready to make complex topics easier to understand with tailored, real-time answers from our intelligent chatbot?
+<br></br>Want to learn in your preferred language and ask questions without feeling judged or awkward?<br></br>The answer to this is LectureEase.</p>
         </div>
         {/* Video Section */}
         <div className="video-section">
