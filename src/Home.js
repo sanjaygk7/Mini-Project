@@ -52,7 +52,7 @@ Ready to make complex topics easier to understand with tailored, real-time answe
             loop 
             className="background-video"
           >
-            <source src="/videos/3254066-hd_1920_1080_25fps.mp4" type="video/mp4" />
+            <source src="/videos/intro.mp4" type="video/mp4" />
             Your browser does not support the video tag.
           </video>
           
