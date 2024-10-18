@@ -13,6 +13,7 @@
     color: #4a90e2;
     margin-bottom: 20px;
     text-align: center;
+    
   }
   
   .file-upload label {
@@ -33,4 +34,21 @@
   
   .file-upload .upload-btn:hover {
     background-color: #357abd;
+  }
+  .flex{
+    text-align: center;
+    
+    margin-bottom: 100px;
+  }
+  .text{
+    font-family: comic Verdana, Geneva, Tahoma, sans-serif;
+    font-weight: 300;
+    font-size: 30px;
+    padding: 40px;
+  }
+  .choosefile{
+    padding: 20px;
+  }
+  .mb-4{
+    padding: 20px;
   }
