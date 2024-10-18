@@ -68,7 +68,7 @@ Ready to make complex topics easier to understand with tailored, real-time answe
             to="/upload" 
             className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
           >
-            Get Started
+            Get Started --&gt;
           </Link>
         </div>
       </div>
