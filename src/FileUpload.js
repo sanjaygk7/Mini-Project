@@ -71,47 +71,65 @@ const FileUpload = ({ setVideoUrl }) => {
           <h1 className="text-4xl font-bold mb-4">LectureEase</h1>
         </div>
         <div className="login">
-          <Link 
-            to="/login" 
+          <Link
+            to="/login"
             className="bg-white text-blue-500 font-bold py-2 px-4 rounded"
           >
             Login
           </Link>
         </div>
       </div>
-      
+
+      {/* File Upload Section */}
       {/* File Upload Section */}
       <div className="flex flex-col items-center justify-center flex-grow p-4">
-        <h2 className="text">Upload Your Lecture Video Here</h2>
-        <input 
-          type="file" 
-          onChange={handleFileChange} 
-          accept="video/mp4"
-          className="mb-4"
-        />
-        <button 
-          onClick={handleUpload}
-          disabled={!file || uploading}
-          className="choosefile"
-        >
-          {uploading ? 'Uploading...' : 'Upload'}
-        </button>
+        <div className="headd">
+          <span>Upload Your Lecture Video Here</span>
+        </div>
+        <div className="upload-container">
+          <input
+            type="file"
+            onChange={handleFileChange}
+            accept="video/mp4"
+            className="file-input"
+          />
+          <button
+            onClick={handleUpload}
+            disabled={!file || uploading}
+            className="choosefile"
+          >
+            {uploading ? 'Uploading...' : 'Upload'}
+          </button>
+        </div>
 
         {errorMessage && (
-          <div className="mt-4 text-red-500 font-semibold">
-            {errorMessage}
-          </div>
-        )}
+  <div className="error-container">
+    <div className="error-message">
+      <svg 
+        xmlns="http://www.w3.org/2000/svg" 
+        viewBox="0 0 24 24" 
+        fill="currentColor"
+      >
+        <path 
+          fillRule="evenodd" 
+          d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zm-1.72 6.97a.75.75 0 10-1.06 1.06L10.94 12l-1.72 1.72a.75.75 0 101.06 1.06L12 13.06l1.72 1.72a.75.75 0 101.06-1.06L13.06 12l1.72-1.72a.75.75 0 10-1.06-1.06L12 10.94l-1.72-1.72z" 
+          clipRule="evenodd" 
+        />
+      </svg>
+      {errorMessage}
+    </div>
+  </div>
+)}
       </div>
 
       {/* Contact Section */}
       <section className='contacts'>
         <div className='container shadow flexSB'>
           <div className='left row'>
-            <iframe 
-              src={map} 
-              allowFullScreen 
-              loading="lazy" 
+            <iframe
+              src={map}
+              allowFullScreen
+              loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"
               title="Canara Engineering College Map"
             ></iframe>

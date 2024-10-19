@@ -1,54 +1,94 @@
-/* FileUpload.css */
 .file-upload {
-    max-width: 500px;
-    margin: 50px auto;
-    padding: 30px;
-    background-color: white;
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  max-width: 500px;
+  margin: 50px auto;
+  padding: 30px;
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.headd {
+  font-family: comic Verdana, Geneva, Tahoma, sans-serif;
+  font-size: 30px;
+  border-radius: 10px;
+  color: white;
+  background: linear-gradient(45deg, #00cccc,#003333);
+  padding: 10px;
+  width: 600px;
+  margin: 20px auto;
+  margin-bottom: 40px;
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.upload-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  margin: 0 auto;
+  flex-wrap: wrap;
+}
+
+.file-input {
+  flex: 0 1 auto;
+}
+
+.choosefile {
+  padding: 12px 24px;
+  background-color: #348f89;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  min-width: 120px;
+  text-align: center;
+}
+
+.choosefile:hover {
+  background-color: #1e5157;
+}
+
+.choosefile:disabled {
+  background-color: #b1afaf;
+  cursor: not-allowed;
+}
+
+.error-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-top: 15px;
+}
+
+.error-message {
+  padding: 8px 16px;
+  background-color: #fee2e2;
+  border: 1px solid #ef4444;
+  border-radius: 4px;
+  color: #dc2626;
+  font-size: 18px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.error-message svg {
+  width: 23px;
+  height: 23px;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
   }
-  
-  .file-upload h2 {
-    font-size: 1.8em;
-    color: #4a90e2;
-    margin-bottom: 20px;
-    text-align: center;
-    
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
-  
-  .file-upload label {
-    display: block;
-    margin-bottom: 10px;
-    font-weight: bold;
-  }
-  
-  .file-upload input[type="file"] {
-    margin-bottom: 20px;
-  }
-  
-  .file-upload .upload-btn {
-    background-color: #4a90e2;
-    color: white;
-    width: 100%;
-  }
-  
-  .file-upload .upload-btn:hover {
-    background-color: #357abd;
-  }
-  .flex{
-    text-align: center;
-    
-    margin-bottom: 100px;
-  }
-  .text{
-    font-family: comic Verdana, Geneva, Tahoma, sans-serif;
-    font-weight: 300;
-    font-size: 30px;
-    padding: 40px;
-  }
-  .choosefile{
-    padding: 20px;
-  }
-  .mb-4{
-    padding: 20px;
-  }
+}
