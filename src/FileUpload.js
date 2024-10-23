@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom'; // Removed useNavigate as it's unused
 import emailjs from 'emailjs-com';
 import './FileUpload.css';
 import './Home.css';
@@ -8,9 +8,6 @@ const FileUpload = ({ setVideoUrl }) => {
   const [file, setFile] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-  const navigate = useNavigate();
-
-  const map = 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3889.139486474868!2d74.9819583750037!3d12.898751016471458!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3ba4a7ec7cde3f61%3A0x375b242f31af884c!2sCanara%20Engineering%20College!5e0!3m2!1sen!2sin!4v1727483165342!5m2!1sen!2sin';
 
   const handleFileChange = (event) => {
     setFile(event.target.files[0]);
@@ -24,8 +21,62 @@ const FileUpload = ({ setVideoUrl }) => {
     }
 
     setUploading(true);
+    try {
+      // Step 1: Extract audio from video file
+      const audioBlob = await extractAudio(file);
+      if (audioBlob) {
+        // Step 2: Send audio to backend
+        await sendAudioToBackend(audioBlob);
+        setUploading(false);
+      }
+    } catch (error) {
+      console.error('Error processing file:', error);
+      setErrorMessage('Error processing file. Please try again.');
+      setUploading(false);
+    }
+  };
+
+  // Function to extract audio from video file
+  const extractAudio = (videoFile) => {
+    return new Promise((resolve, reject) => {
+      const videoElement = document.createElement('video');
+      videoElement.src = URL.createObjectURL(videoFile);
+      videoElement.muted = true; 
+      
+      videoElement.onloadedmetadata = () => {
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const source = audioContext.createMediaElementSource(videoElement);
+        const destination = audioContext.createMediaStreamDestination();
+        source.connect(destination);
+        
+        const mediaRecorder = new MediaRecorder(destination.stream);
+        const chunks = [];
+        
+        mediaRecorder.ondataavailable = (e) => {
+          chunks.push(e.data);
+        };
+        
+        mediaRecorder.onstop = () => {
+          const audioBlob = new Blob(chunks, { type: 'audio/mp3' });
+          resolve(audioBlob);
+        };
+        
+        videoElement.play();
+        mediaRecorder.start();
+
+        setTimeout(() => {
+          mediaRecorder.stop();
+        }, 5000);  // Adjust time as needed
+      };
+
+      videoElement.onerror = (e) => reject(e);
+    });
+  };
+
+  // Function to send audio Blob to backend
+  const sendAudioToBackend = async (audioBlob) => {
     const formData = new FormData();
-    formData.append('video', file);
+    formData.append('audio', audioBlob, 'extracted-audio.mp3');
 
     try {
       const response = await fetch('http://localhost:5000/api/upload', {
@@ -34,21 +85,16 @@ const FileUpload = ({ setVideoUrl }) => {
       });
 
       if (response.ok) {
-        const result = await response.json();
-        const videoUrl = result.videoUrl;
-        setVideoUrl(videoUrl);
-        navigate('/summary');
+        console.log('Audio file uploaded successfully');
       } else {
-        throw new Error('Upload failed. Please try again.');
+        throw new Error('Failed to upload audio file');
       }
     } catch (error) {
-      console.error('Error uploading file:', error);
-      setErrorMessage('Error uploading file. Please try again.');
-    } finally {
-      setUploading(false);
+      console.error('Error uploading audio file:', error);
     }
   };
 
+  // Function to send email
   const sendEmail = (e) => {
     e.preventDefault();
 
@@ -65,7 +111,6 @@ const FileUpload = ({ setVideoUrl }) => {
 
   return (
     <div className="flex flex-col min-h-screen">
-      {/* First Section: LectureEase and Login */}
       <div className="container">
         <div className="lectureEase">
           <h1 className="text-4xl font-bold mb-4">LectureEase</h1>
@@ -80,8 +125,6 @@ const FileUpload = ({ setVideoUrl }) => {
         </div>
       </div>
 
-      {/* File Upload Section */}
-      {/* File Upload Section */}
       <div className="flex flex-col items-center justify-center flex-grow p-4">
         <div className="headd">
           <span>Upload Your Lecture Video Here</span>
@@ -103,31 +146,30 @@ const FileUpload = ({ setVideoUrl }) => {
         </div>
 
         {errorMessage && (
-  <div className="error-container">
-    <div className="error-message">
-      <svg 
-        xmlns="http://www.w3.org/2000/svg" 
-        viewBox="0 0 24 24" 
-        fill="currentColor"
-      >
-        <path 
-          fillRule="evenodd" 
-          d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zm-1.72 6.97a.75.75 0 10-1.06 1.06L10.94 12l-1.72 1.72a.75.75 0 101.06 1.06L12 13.06l1.72 1.72a.75.75 0 101.06-1.06L13.06 12l1.72-1.72a.75.75 0 10-1.06-1.06L12 10.94l-1.72-1.72z" 
-          clipRule="evenodd" 
-        />
-      </svg>
-      {errorMessage}
-    </div>
-  </div>
-)}
+          <div className="error-container">
+            <div className="error-message">
+              <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                viewBox="0 0 24 24" 
+                fill="currentColor"
+              >
+                <path 
+                  fillRule="evenodd" 
+                  d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zm-1.72 6.97a.75.75 0 10-1.06 1.06L10.94 12l-1.72 1.72a.75.75 0 101.06 1.06L12 13.06l1.72 1.72a.75.75 0 101.06-1.06L13.06 12l1.72-1.72a.75.75 0 10-1.06-1.06L12 10.94l-1.72-1.72z" 
+                  clipRule="evenodd" 
+                />
+              </svg>
+              {errorMessage}
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Contact Section */}
       <section className='contacts'>
         <div className='container shadow flexSB'>
           <div className='left row'>
             <iframe
-              src={map}
+              src="https://www.google.com/maps"
               allowFullScreen
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"
@@ -167,3 +209,4 @@ const FileUpload = ({ setVideoUrl }) => {
 };
 
 export default FileUpload;
+
