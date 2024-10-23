@@ -17,24 +17,43 @@ app.use(express.json());
 const HUGGINGFACE_API_KEY = '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';
 
 // OpenAI API Key
-const OPENAI_API_KEY = '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'; // Replace with your actual OpenAI API key
+const OPENAI_API_KEY = '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';
 
 // File Upload Setup (Multer)
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    if (!fs.existsSync('uploads')) {
-      fs.mkdirSync('uploads'); // Create uploads directory if it doesn't exist
+    const uploadPath = 'D:/Projects/StudyEase/Final/uploads';
+    if (!fs.existsSync(uploadPath)) {
+      fs.mkdirSync(uploadPath, { recursive: true }); // Create directory if it doesn't exist
     }
-    cb(null, 'uploads/');
+    cb(null, uploadPath);
   },
   filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname));
+    if (file.mimetype.startsWith('audio/')) {
+      cb(null, `audio-${Date.now()}${path.extname(file.originalname)}`);
+    } else {
+      cb(null, `${Date.now()}${path.extname(file.originalname)}`);
+    }
   },
 });
 
 const upload = multer({ storage });
 
-// File Upload Endpoint
+// Audio Upload Endpoint
+app.post('/api/upload-audio', upload.single('audio'), (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: 'No audio file uploaded' });
+  }
+
+  const audioPath = req.file.path;
+  res.json({ 
+    success: true, 
+    message: 'Audio file saved successfully',
+    path: audioPath 
+  });
+});
+
+// File Upload Endpoint (for other files)
 app.post('/api/upload', upload.single('video'), (req, res) => {
   if (!req.file) {
     return res.status(400).json({ error: 'No file uploaded' });
@@ -46,18 +65,17 @@ app.post('/api/upload', upload.single('video'), (req, res) => {
 
 // Summarization Endpoint
 app.post('/api/summarize', async (req, res) => {
-  const { videoUrl, transcript } = req.body; // Expecting a transcript to be passed
+  const { transcript } = req.body;
 
   if (!transcript) {
     return res.status(400).json({ error: 'No transcript provided for summarization.' });
   }
 
   try {
-    // Call Hugging Face API for summarization
     const response = await axios.post(
       'https://api-inference.huggingface.co/models/facebook/bart-large-cnn',
       {
-        inputs: transcript, // Send the transcript directly
+        inputs: transcript,
       },
       {
         headers: {
@@ -74,7 +92,6 @@ app.post('/api/summarize', async (req, res) => {
   }
 });
 
-
 // Chatbot Endpoint
 app.post('/api/chat', async (req, res) => {
   const { message } = req.body;
@@ -85,7 +102,7 @@ app.post('/api/chat', async (req, res) => {
       const response = await axios.post(
         'https://api.openai.com/v1/chat/completions',
         {
-          model: 'gpt-3.5-turbo', // Use your preferred model
+          model: 'gpt-3.5-turbo',
           messages: [{ role: 'user', content: message }],
         },
         {
@@ -99,21 +116,21 @@ app.post('/api/chat', async (req, res) => {
       return response.data.choices[0].message.content;
     };
 
-    const maxRetries = 5; // Set the maximum number of retries
+    const maxRetries = 5;
     let attempts = 0;
     let reply;
 
     while (attempts < maxRetries) {
       try {
         reply = await getChatbotResponse();
-        break; // Exit loop if successful
+        break;
       } catch (error) {
         if (error.response && error.response.status === 503) {
           attempts++;
           console.log(`Attempt ${attempts} failed. Retrying...`);
-          await new Promise(res => setTimeout(res, 2000)); // Wait 2 seconds before retrying
+          await new Promise(res => setTimeout(res, 2000));
         } else {
-          throw error; // Re-throw other errors
+          throw error;
         }
       }
     }
@@ -129,8 +146,37 @@ app.post('/api/chat', async (req, res) => {
   }
 });
 
-// Static files for uploads
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// Handle Audio Files List Request
+app.get('/api/audio-files', (req, res) => {
+  const uploadPath = 'D:/Projects/StudyEase/Final/uploads';
+  try {
+    if (!fs.existsSync(uploadPath)) {
+      return res.json({ files: [] });
+    }
+    
+    const files = fs.readdirSync(uploadPath)
+      .filter(file => file.startsWith('audio-'))
+      .map(file => ({
+        name: file,
+        path: `${uploadPath}/${file}`,
+        url: `/uploads/${file}`
+      }));
+    
+    res.json({ files });
+  } catch (error) {
+    console.error('Error reading audio files:', error);
+    res.status(500).json({ error: 'Failed to retrieve audio files' });
+  }
+});
+
+// Serve static files
+app.use('/uploads', express.static('D:/Projects/StudyEase/Final/uploads'));
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ error: 'Something went wrong!' });
+});
 
 // Start Server
 app.listen(PORT, () => {
