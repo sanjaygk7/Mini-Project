@@ -1,43 +1,17 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router-dom'; // Removed useNavigate as it's unused
 import emailjs from 'emailjs-com';
 import './FileUpload.css';
 import './Home.css';
 
 const FileUpload = ({ setVideoUrl }) => {
   const [file, setFile] = useState(null);
-  const [audioUrl, setAudioUrl] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-  const [showSuccess, setShowSuccess] = useState(false);
 
   const handleFileChange = (event) => {
     setFile(event.target.files[0]);
     setErrorMessage('');
-    setAudioUrl(null);
-    setShowSuccess(false);
-  };
-
-  const saveAudioToServer = async (audioBlob) => {
-    const formData = new FormData();
-    formData.append('audio', audioBlob, 'extracted-audio.mp3');
-
-    try {
-      const response = await fetch('http://localhost:5000/api/upload-audio', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to save audio file');
-      }
-
-      const data = await response.json();
-      return data.path;
-    } catch (error) {
-      console.error('Error saving audio:', error);
-      throw error;
-    }
   };
 
   const handleUpload = async () => {
@@ -48,80 +22,91 @@ const FileUpload = ({ setVideoUrl }) => {
 
     setUploading(true);
     try {
+      // Step 1: Extract audio from video file
       const audioBlob = await extractAudio(file);
       if (audioBlob) {
-        // Save to server
-        await saveAudioToServer(audioBlob);
-        
-        // Create a URL for preview in browser
-        const url = URL.createObjectURL(audioBlob);
-        setAudioUrl(url);
-
-        // Show success message
-        setShowSuccess(true);
-        
-        // Hide success message after 5 seconds
-        setTimeout(() => {
-          setShowSuccess(false);
-        }, 5000);
+        // Step 2: Send audio to backend
+        await sendAudioToBackend(audioBlob);
+        setUploading(false);
       }
     } catch (error) {
       console.error('Error processing file:', error);
       setErrorMessage('Error processing file. Please try again.');
-    } finally {
       setUploading(false);
     }
   };
 
+  // Function to extract audio from video file
   const extractAudio = (videoFile) => {
     return new Promise((resolve, reject) => {
-      const video = document.createElement('video');
-      video.src = URL.createObjectURL(videoFile);
-      video.preload = 'metadata';
+      const videoElement = document.createElement('video');
+      videoElement.src = URL.createObjectURL(videoFile);
+      videoElement.muted = true; 
+      
+      videoElement.onloadedmetadata = () => {
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const source = audioContext.createMediaElementSource(videoElement);
+        const destination = audioContext.createMediaStreamDestination();
+        source.connect(destination);
+        
+        const mediaRecorder = new MediaRecorder(destination.stream);
+        const chunks = [];
+        
+        mediaRecorder.ondataavailable = (e) => {
+          chunks.push(e.data);
+        };
+        
+        mediaRecorder.onstop = () => {
+          const audioBlob = new Blob(chunks, { type: 'audio/mp3' });
+          resolve(audioBlob);
+        };
+        
+        videoElement.play();
+        mediaRecorder.start();
 
-      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-      const dest = audioContext.createMediaStreamDestination();
-      let audioSource = null;
-      let mediaRecorder = null;
-      const chunks = [];
-
-      video.onloadedmetadata = async () => {
-        try {
-          video.play();
-          video.muted = true;
-
-          audioSource = audioContext.createMediaElementSource(video);
-          audioSource.connect(dest);
-          
-          mediaRecorder = new MediaRecorder(dest.stream);
-          mediaRecorder.start();
-
-          mediaRecorder.ondataavailable = (e) => {
-            if (e.data.size > 0) chunks.push(e.data);
-          };
-
-          mediaRecorder.onstop = () => {
-            const audioBlob = new Blob(chunks, { type: 'audio/mp3' });
-            resolve(audioBlob);
-            
-            video.pause();
-            audioSource.disconnect();
-            audioContext.close();
-          };
-
-          video.onended = () => {
-            mediaRecorder.stop();
-          };
-
-        } catch (error) {
-          reject(error);
-        }
+        setTimeout(() => {
+          mediaRecorder.stop();
+        }, 5000);  // Adjust time as needed
       };
 
-      video.onerror = (error) => {
-        reject(error);
-      };
+      videoElement.onerror = (e) => reject(e);
     });
+  };
+
+  // Function to send audio Blob to backend
+  const sendAudioToBackend = async (audioBlob) => {
+    const formData = new FormData();
+    formData.append('audio', audioBlob, 'extracted-audio.mp3');
+
+    try {
+      const response = await fetch('http://localhost:5000/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (response.ok) {
+        console.log('Audio file uploaded successfully');
+      } else {
+        throw new Error('Failed to upload audio file');
+      }
+    } catch (error) {
+      console.error('Error uploading audio file:', error);
+    }
+  };
+
+  // Function to send email
+  const sendEmail = (e) => {
+    e.preventDefault();
+
+    emailjs.sendForm('service_ly5fdjl', 'template_gxwt9fl', e.target, 'CLGh0AkODgKZFeoFw')
+      .then((result) => {
+        console.log(result.text);
+        alert('Message sent successfully!');
+        e.target.reset();
+      }, (error) => {
+        console.log(error.text);
+        alert('Failed to send message. Please try again.');
+      });
   };
 
   return (
@@ -131,7 +116,10 @@ const FileUpload = ({ setVideoUrl }) => {
           <h1 className="text-4xl font-bold mb-4">LectureEase</h1>
         </div>
         <div className="login">
-          <Link to="/login" className="bg-white text-blue-500 font-bold py-2 px-4 rounded">
+          <Link
+            to="/login"
+            className="bg-white text-blue-500 font-bold py-2 px-4 rounded"
+          >
             Login
           </Link>
         </div>
@@ -157,33 +145,6 @@ const FileUpload = ({ setVideoUrl }) => {
           </button>
         </div>
 
-        {showSuccess && (
-          <div className="mt-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded-md max-w-md">
-            <div className="flex items-center">
-              <svg 
-                className="w-5 h-5 mr-2" 
-                fill="currentColor" 
-                viewBox="0 0 20 20"
-              >
-                <path 
-                  fillRule="evenodd" 
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" 
-                  clipRule="evenodd" 
-                />
-              </svg>
-              <span className="font-medium">Video successfully uploaded and audio extracted!</span>
-            </div>
-          </div>
-        )}
-
-        {audioUrl && (
-          <div className="mt-4">
-            <audio controls src={audioUrl}>
-              Your browser does not support the audio element.
-            </audio>
-          </div>
-        )}
-
         {errorMessage && (
           <div className="error-container">
             <div className="error-message">
@@ -203,8 +164,49 @@ const FileUpload = ({ setVideoUrl }) => {
           </div>
         )}
       </div>
+
+      <section className='contacts'>
+        <div className='container shadow flexSB'>
+          <div className='left row'>
+            <iframe
+              src="https://www.google.com/maps"
+              allowFullScreen
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              title="Canara Engineering College Map"
+            ></iframe>
+          </div>
+          <div className='right row'>
+            <h1>Contact us</h1>
+            <p>We're open for any suggestion or just to have a chat</p>
+
+            <div className='items'>
+              <div className='box'>
+                <h4>ADDRESS</h4>
+                <p>CANARA ENGINEERING COLLEGE, Mangalore</p>
+              </div>
+              <div className='box'>
+                <h4>EMAIL</h4>
+                <p>info@cecproject.com</p>
+              </div>
+              <div className='box'>
+                <h4>PHONE</h4>
+                <p>+91 9876543210</p>
+              </div>
+            </div>
+
+            <form onSubmit={sendEmail}>
+              <input type="text" name="name" placeholder="Your Name" required />
+              <input type="email" name="email" placeholder="Your Email" required />
+              <textarea name="message" placeholder="Your Message" required></textarea>
+              <button type="submit">Send Message</button>
+            </form>
+          </div>
+        </div>
+      </section>
     </div>
   );
 };
 
 export default FileUpload;
+
